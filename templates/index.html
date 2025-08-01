@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mimora - Your Chronicles</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Welcome to Mimora!</h1>
+    </header>
+    <main>
+        <h2>Your Chronicles</h2>
+        <ul id="chronicles-list"></ul>
+    </main>
+    <footer>
+        <p>&copy; 2025 Mimora. All rights reserved.</p>
+    </footer>
+
+    <script>
+        fetch('/api/chronicles')
+            .then(response => response.json())
+            .then(data => {
+                const chroniclesList = document.getElementById('chronicles-list');
+                data.forEach(chronicle => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${chronicle.title} by ${chronicle.author} (${chronicle.status})`;
+                    chroniclesList.appendChild(listItem);
+                });
+            })
+            .catch(error => console.error('Error fetching chronicles:', error));
+    </script>
+</body>
+</html>

@@ -14,6 +14,7 @@
         <h2>{{ chronicle.title }}</h2>
         <p><strong>Author:</strong> {{ chronicle.author }}</p>
         <p><strong>Status:</strong> {{ chronicle.status }}</p>
+        <button onclick="window.location.href='/chronicle/{{ chronicle.id }}/edit'">Edit Chronicle</button>
         <h3>Content:</h3>
         <div id="chronicle-content">Loading content...</div>
     </main>

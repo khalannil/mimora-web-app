@@ -1,4 +1,5 @@
 from flask import Flask, render_template, jsonify, g, request
+import requests
 from database import connect_db, init_db
 
 app = Flask(__name__)
@@ -157,6 +158,21 @@ def add_conduit():
     g.db.execute("INSERT INTO conduits (name, archive_id) VALUES (?, ?)", (name, archive_id))
     g.db.commit()
     return jsonify({"message": "Conduit added successfully"}), 201
+
+@app.route('/api/conduits/<int:conduit_id>/fetch')
+def fetch_conduit_content(conduit_id):
+    cursor = g.db.execute('SELECT a.url FROM conduits c JOIN archives a ON c.archive_id = a.id WHERE c.id = ?', (conduit_id,))
+    archive_url = cursor.fetchone()
+
+    if not archive_url or not archive_url[0]:
+        return jsonify({"error": "Conduit or associated archive URL not found"}), 404
+
+    try:
+        response = requests.get(archive_url[0])
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        return jsonify({"content": response.text})
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": f"Error fetching content from archive: {e}"}), 500
 
 @app.route('/chronicle/<int:chronicle_id>/edit')
 def edit_chronicle(chronicle_id):

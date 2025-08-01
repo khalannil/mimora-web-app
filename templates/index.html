@@ -13,6 +13,12 @@
     <main>
         <h2>Your Chronicles</h2>
         <ul id="chronicles-list"></ul>
+
+        <h2>Archives</h2>
+        <ul id="archives-list"></ul>
+
+        <h2>Conduits</h2>
+        <ul id="conduits-list"></ul>
     </main>
     <footer>
         <p>&copy; 2025 Mimora. All rights reserved.</p>
@@ -30,6 +36,30 @@
                 });
             })
             .catch(error => console.error('Error fetching chronicles:', error));
+
+        fetch('/api/archives')
+            .then(response => response.json())
+            .then(data => {
+                const archivesList = document.getElementById('archives-list');
+                data.forEach(archive => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${archive.name} (${archive.url})`;
+                    archivesList.appendChild(listItem);
+                });
+            })
+            .catch(error => console.error('Error fetching archives:', error));
+
+        fetch('/api/conduits')
+            .then(response => response.json())
+            .then(data => {
+                const conduitsList = document.getElementById('conduits-list');
+                data.forEach(conduit => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${conduit.name} (Archive: ${conduit.archive_name})`;
+                    conduitsList.appendChild(listItem);
+                });
+            })
+            .catch(error => console.error('Error fetching conduits:', error));
     </script>
 </body>
 </html>

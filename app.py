@@ -37,12 +37,25 @@ def get_conduits():
 
 @app.route('/chronicle/<int:chronicle_id>')
 def chronicle_detail(chronicle_id):
-    cursor = g.db.execute('SELECT id, title, author, status FROM chronicles WHERE id = ?', (chronicle_id,))
+    cursor = g.db.execute('SELECT id, title, author, status, content_path FROM chronicles WHERE id = ?', (chronicle_id,))
     chronicle = cursor.fetchone()
     if chronicle:
-        chronicle_dict = dict(id=chronicle[0], title=chronicle[1], author=chronicle[2], status=chronicle[3])
+        chronicle_dict = dict(id=chronicle[0], title=chronicle[1], author=chronicle[2], status=chronicle[3], content_path=chronicle[4])
         return render_template('chronicle_detail.html', chronicle=chronicle_dict)
     return "Chronicle not found", 404
+
+@app.route('/api/chronicles/<int:chronicle_id>/content')
+def get_chronicle_content(chronicle_id):
+    cursor = g.db.execute('SELECT content_path FROM chronicles WHERE id = ?', (chronicle_id,))
+    content_path = cursor.fetchone()
+    if content_path and content_path[0]:
+        try:
+            with open(content_path[0], 'r') as f:
+                content = f.read()
+            return jsonify({"content": content})
+        except FileNotFoundError:
+            return jsonify({"error": "Content file not found"}), 404
+    return jsonify({"error": "Chronicle or content path not found"}), 404
 
 @app.route('/api/chronicles', methods=['POST'])
 def add_chronicle():

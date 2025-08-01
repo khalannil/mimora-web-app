@@ -12,6 +12,10 @@
     </header>
     <main>
         <h2>Your Chronicles</h2>
+        <div class="search-bar">
+            <input type="text" id="search-query" placeholder="Search chronicles...">
+            <button id="search-button">Search</button>
+        </div>
         <ul id="chronicles-list"></ul>
 
         <h2>Archives</h2>
@@ -25,6 +29,7 @@
             <input type="text" id="chronicle-title" placeholder="Title" required>
             <input type="text" id="chronicle-author" placeholder="Author" required>
             <input type="text" id="chronicle-status" placeholder="Status" required>
+            <textarea id="chronicle-content" placeholder="Content" rows="5"></textarea>
             <button type="submit">Add Chronicle</button>
         </form>
 
@@ -47,9 +52,14 @@
     </footer>
 
     <script>
-        function refreshData() {
+        function refreshData(searchQuery = '') {
             // Fetch Chronicles
-            fetch('/api/chronicles')
+            let chroniclesUrl = '/api/chronicles';
+            if (searchQuery) {
+                chroniclesUrl = `/api/search?query=${encodeURIComponent(searchQuery)}`;
+            }
+
+            fetch(chroniclesUrl)
                 .then(response => response.json())
                 .then(data => {
                     const chroniclesList = document.getElementById('chronicles-list');
@@ -60,6 +70,32 @@
                         link.href = `/chronicle/${chronicle.id}`;
                         link.textContent = `${chronicle.title} by ${chronicle.author} (${chronicle.status})`;
                         listItem.appendChild(link);
+
+                        const actionsDiv = document.createElement('div');
+
+                        const editButton = document.createElement('button');
+                        editButton.textContent = 'Edit';
+                        editButton.onclick = () => window.location.href = `/chronicle/${chronicle.id}/edit`;
+                        actionsDiv.appendChild(editButton);
+
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Delete';
+                        deleteButton.onclick = () => {
+                            if (confirm(`Are you sure you want to delete \"${chronicle.title}\"?`)) {
+                                fetch(`/api/chronicles/${chronicle.id}`, {
+                                    method: 'DELETE',
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    console.log(data);
+                                    refreshData();
+                                })
+                                .catch(error => console.error('Error deleting chronicle:', error));
+                            }
+                        };
+                        actionsDiv.appendChild(deleteButton);
+
+                        listItem.appendChild(actionsDiv);
                         chroniclesList.appendChild(listItem);
                     });
                 })
@@ -97,19 +133,26 @@
         // Initial data load
         refreshData();
 
+        // Handle Search button click
+        document.getElementById('search-button').addEventListener('click', function() {
+            const searchQuery = document.getElementById('search-query').value;
+            refreshData(searchQuery);
+        });
+
         // Handle Add Chronicle form submission
         document.getElementById('add-chronicle-form').addEventListener('submit', function(event) {
             event.preventDefault();
             const title = document.getElementById('chronicle-title').value;
             const author = document.getElementById('chronicle-author').value;
             const status = document.getElementById('chronicle-status').value;
+            const content = document.getElementById('chronicle-content').value;
 
             fetch('/api/chronicles', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ title, author, status }),
+                body: JSON.stringify({ title, author, status, content }),
             })
             .then(response => response.json())
             .then(data => {

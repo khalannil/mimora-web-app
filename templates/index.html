@@ -124,6 +124,22 @@
                     data.forEach(conduit => {
                         const listItem = document.createElement('li');
                         listItem.textContent = `${conduit.name} (Archive: ${conduit.archive_name})`;
+
+                        const fetchButton = document.createElement('button');
+                        fetchButton.textContent = 'Fetch Content';
+                        fetchButton.onclick = () => {
+                            fetch(`/api/conduits/${conduit.id}/fetch`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.content) {
+                                        alert(`Content from ${conduit.name}:\n\n${data.content}`);
+                                    } else if (data.error) {
+                                        alert(`Error fetching content from ${conduit.name}: ${data.error}`);
+                                    }
+                                })
+                                .catch(error => console.error('Error fetching conduit content:', error));
+                        };
+                        listItem.appendChild(fetchButton);
                         conduitsList.appendChild(listItem);
                     });
                 })

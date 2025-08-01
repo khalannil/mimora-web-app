@@ -13,7 +13,8 @@ def init_db():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT NOT NULL,
                 author TEXT NOT NULL,
-                status TEXT NOT NULL
+                status TEXT NOT NULL,
+                content_path TEXT
             );
         ''')
         cursor.execute('''

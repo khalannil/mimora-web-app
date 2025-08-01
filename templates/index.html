@@ -19,47 +19,150 @@
 
         <h2>Conduits</h2>
         <ul id="conduits-list"></ul>
+
+        <h2>Add New Chronicle</h2>
+        <form id="add-chronicle-form">
+            <input type="text" id="chronicle-title" placeholder="Title" required>
+            <input type="text" id="chronicle-author" placeholder="Author" required>
+            <input type="text" id="chronicle-status" placeholder="Status" required>
+            <button type="submit">Add Chronicle</button>
+        </form>
+
+        <h2>Add New Archive</h2>
+        <form id="add-archive-form">
+            <input type="text" id="archive-name" placeholder="Name" required>
+            <input type="url" id="archive-url" placeholder="URL" required>
+            <button type="submit">Add Archive</button>
+        </form>
+
+        <h2>Add New Conduit</h2>
+        <form id="add-conduit-form">
+            <input type="text" id="conduit-name" placeholder="Name" required>
+            <input type="number" id="conduit-archive-id" placeholder="Archive ID" required>
+            <button type="submit">Add Conduit</button>
+        </form>
     </main>
     <footer>
         <p>&copy; 2025 Mimora. All rights reserved.</p>
     </footer>
 
     <script>
-        fetch('/api/chronicles')
-            .then(response => response.json())
-            .then(data => {
-                const chroniclesList = document.getElementById('chronicles-list');
-                data.forEach(chronicle => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = `${chronicle.title} by ${chronicle.author} (${chronicle.status})`;
-                    chroniclesList.appendChild(listItem);
-                });
-            })
-            .catch(error => console.error('Error fetching chronicles:', error));
+        function refreshData() {
+            // Fetch Chronicles
+            fetch('/api/chronicles')
+                .then(response => response.json())
+                .then(data => {
+                    const chroniclesList = document.getElementById('chronicles-list');
+                    chroniclesList.innerHTML = ''; // Clear existing list
+                    data.forEach(chronicle => {
+                        const listItem = document.createElement('li');
+                        const link = document.createElement('a');
+                        link.href = `/chronicle/${chronicle.id}`;
+                        link.textContent = `${chronicle.title} by ${chronicle.author} (${chronicle.status})`;
+                        listItem.appendChild(link);
+                        chroniclesList.appendChild(listItem);
+                    });
+                })
+                .catch(error => console.error('Error fetching chronicles:', error));
 
-        fetch('/api/archives')
-            .then(response => response.json())
-            .then(data => {
-                const archivesList = document.getElementById('archives-list');
-                data.forEach(archive => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = `${archive.name} (${archive.url})`;
-                    archivesList.appendChild(listItem);
-                });
-            })
-            .catch(error => console.error('Error fetching archives:', error));
+            // Fetch Archives
+            fetch('/api/archives')
+                .then(response => response.json())
+                .then(data => {
+                    const archivesList = document.getElementById('archives-list');
+                    archivesList.innerHTML = ''; // Clear existing list
+                    data.forEach(archive => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${archive.name} (${archive.url})`;
+                        archivesList.appendChild(listItem);
+                    });
+                })
+                .catch(error => console.error('Error fetching archives:', error));
 
-        fetch('/api/conduits')
+            // Fetch Conduits
+            fetch('/api/conduits')
+                .then(response => response.json())
+                .then(data => {
+                    const conduitsList = document.getElementById('conduits-list');
+                    conduitsList.innerHTML = ''; // Clear existing list
+                    data.forEach(conduit => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${conduit.name} (Archive: ${conduit.archive_name})`;
+                        conduitsList.appendChild(listItem);
+                    });
+                })
+                .catch(error => console.error('Error fetching conduits:', error));
+        }
+
+        // Initial data load
+        refreshData();
+
+        // Handle Add Chronicle form submission
+        document.getElementById('add-chronicle-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const title = document.getElementById('chronicle-title').value;
+            const author = document.getElementById('chronicle-author').value;
+            const status = document.getElementById('chronicle-status').value;
+
+            fetch('/api/chronicles', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ title, author, status }),
+            })
             .then(response => response.json())
             .then(data => {
-                const conduitsList = document.getElementById('conduits-list');
-                data.forEach(conduit => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = `${conduit.name} (Archive: ${conduit.archive_name})`;
-                    conduitsList.appendChild(listItem);
-                });
+                console.log(data);
+                refreshData(); // Refresh lists after adding
+                document.getElementById('add-chronicle-form').reset(); // Clear form
             })
-            .catch(error => console.error('Error fetching conduits:', error));
+            .catch(error => console.error('Error adding chronicle:', error));
+        });
+
+        // Handle Add Archive form submission
+        document.getElementById('add-archive-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = document.getElementById('archive-name').value;
+            const url = document.getElementById('archive-url').value;
+
+            fetch('/api/archives', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, url }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                refreshData(); // Refresh lists after adding
+                document.getElementById('add-archive-form').reset(); // Clear form
+            })
+            .catch(error => console.error('Error adding archive:', error));
+        });
+
+        // Handle Add Conduit form submission
+        document.getElementById('add-conduit-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const name = document.getElementById('conduit-name').value;
+            const archive_id = parseInt(document.getElementById('conduit-archive-id').value);
+
+            fetch('/api/conduits', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, archive_id }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                refreshData(); // Refresh lists after adding
+                document.getElementById('add-conduit-form').reset(); // Clear form
+            })
+            .catch(error => console.error('Error adding conduit:', error));
+        });
     </script>
 </body>
 </html>

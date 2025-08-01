@@ -14,10 +14,28 @@
         <h2>{{ chronicle.title }}</h2>
         <p><strong>Author:</strong> {{ chronicle.author }}</p>
         <p><strong>Status:</strong> {{ chronicle.status }}</p>
-        <!-- More details about the chronicle can go here -->
+        <h3>Content:</h3>
+        <div id="chronicle-content">Loading content...</div>
     </main>
     <footer>
         <p>&copy; 2025 Mimora. All rights reserved.</p>
     </footer>
+
+    <script>
+        fetch(`/api/chronicles/${chronicle.id}/content`)
+            .then(response => response.json())
+            .then(data => {
+                const contentDiv = document.getElementById('chronicle-content');
+                if (data.content) {
+                    contentDiv.textContent = data.content;
+                } else if (data.error) {
+                    contentDiv.textContent = `Error: ${data.error}`;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching chronicle content:', error);
+                document.getElementById('chronicle-content').textContent = 'Failed to load content.';
+            });
+    </script>
 </body>
 </html>
